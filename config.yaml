@@ -1,0 +1,35 @@
+system:
+  environment: "production"
+  logging_level: "INFO"
+
+database:
+  connection_string: "sqlite:///master_dataset.db"
+
+api_keys:
+  open_weather: "fccf5827e07714559013b1721efab380"
+  sportsmonks: "PLACEHOLDER_SPORTSMONKS_KEY"
+  api_football: "7fd73a463398e1df8bf27e8b6e8a5cbe"
+  
+training:
+  poisson:
+    max_iter: 100
+  lstm:
+    epochs: 20
+    hidden_size: 128
+    num_layers: 2
+    learning_rate: 0.001
+  xgboost:
+    n_estimators: 500
+    max_depth: 6
+    learning_rate: 0.01
+
+adaptation:
+  brier_drift_threshold: 0.05
+  calibration_slope_threshold: 0.1
+  
+monte_carlo:
+  num_simulations: 10000
+
+features:
+  rolling_windows: [5, 10, 20]
+  shap_selection_threshold: 0.01
