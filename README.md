@@ -1,41 +1,51 @@
-# AAMPFPS: AI-Powered Adaptive Multi-Modal Football Prediction System
+# AAMPFPS — Adaptive Multi-Model Football Prediction System
 
-The definitive, production-ready football intelligence platform designed for a billion-dollar enterprise solution.
+A football match prediction pipeline that combines statistical, deep learning, and ensemble methods to generate probability distributions for match outcomes, goal lines, corners, and cards — rather than a single point prediction.
 
-## Architecture
+## How it works
 
-AAMPFPS utilizes a fully autonomous structure designed for extreme accuracy:
-- **Exhaustive Feature Engineering**: Ingests everything from tactical line-ups and player fatigue to weather variations and team friction.
-- **Hybrid AI Architecture**: Utilizes Poisson GLMs, deep Pytorch LSTMs, and XGBoost gradient boosting in a Bayseian-updated ensemble.
-- **Adaptive Weekly Loop**: Re-trains and ingests fresh match data every Monday.
-- **Monte Carlo Simulator**: 10,000+ simulations to project full probability distributions for win/draw/loss, goal lines, cards, and corners.
+**Data ingestion** — Pulls historical and live match data via API integrations (API-Football, Sportmonks) and web scraping, with weather data (OpenWeather) as a supplementary feature. Falls back to cached/offline historical datasets when live sources are unavailable.
 
-## Setup Instructions
+**Feature engineering** — Rolling-window team form, tactical and fatigue-related features, SHAP-based feature selection, and NLP sentiment extraction from football news (VADER sentiment).
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+**Modeling** — A hybrid ensemble rather than one model:
+- **Poisson GLM** (`statsmodels`) — a bivariate-style Poisson regression modeling home/away goals as a function of team, opponent, and home advantage, the standard statistical baseline for football score prediction.
+- **Deep learning (PyTorch LSTM)** — sequence modeling for time-dependent form/momentum.
+- **Gradient boosting (XGBoost)** — tabular feature-based prediction.
+- **Adaptive stacking ensemble** — combines the above model outputs.
+- **Autoencoder** and **graph intelligence** modules for representation learning and team-relationship modeling.
 
-2. **Configuration**
-   Edit `config.yaml` to include any relevant API keys (API-Football, Sportmonks, Open-Meteo). The system works without them via safe degradation to offline historical datasets.
+**Prediction engine** — A Monte Carlo simulator runs 10,000 simulated matches per fixture using Poisson-distributed goals, corners, and cards, producing full probability distributions (win/draw/loss, over/under goal lines, corner and card totals) rather than single-point forecasts.
 
-3. **Running the Dashboard**
-   Launch the Streamlit interface:
-   ```bash
-   streamlit run main.py
-   ```
+**Weekly adaptation loop** — An APScheduler-based job retrains models on fresh match data on a weekly cadence, with drift detection (Brier score, calibration slope) to trigger retraining when model performance degrades.
 
-4. **Running the Scheduler (Weekly Adaptation)**
-   Initialize the system in auto-run daemon mode:
-   ```bash
-   python main.py --scheduler
-   ```
+**Dashboard** — A Streamlit interface for visualizing predictions and model performance.
 
-## Folder Structure
-- `/data`: Database management and API web scarper ingestion.
-- `/features`: Deep feature engineering, rolling lags, specific sentiment extraction, and SHAP reduction.
-- `/models`: Poisson, PyTorch LSTM, XGBoost, and Stacking structures.
-- `/prediction`: Monte Carlo engine merging model outputs into exact betting distributions.
-- `/scheduler`: APScheduler instance acting on weekly cadences.
-- `/dashboard`: High-end Streamlit GUI.
+## Tech stack
+
+Python · PyTorch · XGBoost · statsmodels · scikit-learn · SHAP · SQLAlchemy · APScheduler · Streamlit · Plotly
+
+## Status
+
+Core pipeline architecture is implemented end-to-end (ingestion → feature engineering → multi-model training → Monte Carlo simulation → dashboard), with the weekly adaptation loop and drift-based retraining scaffolded in. This is an active prototype, not a production betting system — model calibration and live data reliability are ongoing work.
+
+## Setup
+
+```bash
+pip install -r requirements.txt
+```
+
+Configure API keys for API-Football, Sportmonks, and OpenWeather in `config.yaml` (the system degrades safely to offline historical data if keys aren't provided).
+
+```bash
+streamlit run main.py          # dashboard
+python main.py --scheduler     # weekly adaptation daemon
+```
+
+## Structure
+- `/data` — database management and data ingestion (API + scraping)
+- `/features` — feature engineering, rolling windows, sentiment, SHAP selection
+- `/models` — Poisson GLM, LSTM, XGBoost, autoencoder, graph intelligence, stacking ensemble
+- `/prediction` — Monte Carlo simulation engine, live recalibration
+- `/scheduler` — weekly retraining automation
+- `/dashboard` — Streamlit interface
